@@ -1,0 +1,14 @@
+name: Streamlit_test
+channels:
+  - conda-forge
+dependencies:
+  - conda
+  - python=3.8  # or 2.7
+  - scikit-learn
+  - numpy
+  - scipy
+  - pandas
+  - matplotlib
+  - pip
+  - pip:
+    - Streamlit
