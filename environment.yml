@@ -8,6 +8,11 @@ dependencies:
   - numpy
   - scipy
   - pandas
+  - geopandas
+  - shapely
+  - plotly
+  - fiona
+  - geojson
   - matplotlib
   - pip
   - pip:
