@@ -37,7 +37,7 @@ import datetime
 #     #print(temp)
 #     baltimore = baltimore.append(temp)
 '''
-# Baltimore city police districts
+## Predictions of weekly 911 call volumes for Baltimore City
 '''
 @st.cache(persist=True)
 def load_data():
@@ -50,30 +50,80 @@ def load_data():
         baltimore_map = geojson.load(response)
     return(dBalt, baltimore_map)
 
-def plot_baltimore(dBalt, baltimore_map):   
-    fig = px.choropleth(dBalt, geojson=baltimore_map, 
-                        locations='NAME', featureidkey="properties.NAME",
-                        color='Police_district_x', #color_continuous_scale="Viridis",
-                        # scope="usa",
-                        labels={'Police_district_x':'Police District'}    
+dBalt, baltimore_map = load_data()
+
+districts = dBalt.Police_district_x.unique()
+
+def plot_baltimore(dIn):   
+    fig = px.choropleth(dIn, geojson=baltimore_map, 
+                        locations='Census_Tracts', featureidkey="properties.NAME",
+                        color='Count',
+                        color_continuous_scale="Viridis", 
+                        range_color = [0,250], title = 'Weekly Distribution of 911 calls in Baltimore'
+                        # cmax =400
                         )
     fig.update_geos(fitbounds="locations", visible=False)
     # fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
     return(fig)
 
-dBalt, baltiomore_map = load_data()
-# fig = plot_baltimore()
-# st.plotly_chart(fig)
+url_count = "https://github.com/trisha-sen/Streamlit_test/raw/master/MedHighWeeklyCount.csv"
 
-districts = dBalt.Police_district_x.unique()
+@st.cache(persist=True)
+def District_counts(police_district):
+    df = pd.read_csv(url_count)        
+    df['Date'] = pd.to_datetime(df['Date'])
 
-police_district = st.radio(
-    "Select a district to zoom into", 
-    districts )
+    Temp = df[(df['PoliceDistrict']==police_district)]
+    dfSum = Temp.groupby(pd.Grouper(key='Date', freq='W'))['Count'].sum()
+    dfWeekDistrict = pd.DataFrame(dfSum) 
+    dfWeekDistrict['Date'] = dfSum.index
+    dfWeekDistrict['PoliceDistrict'] = police_district
+    dfWeekDistrict = dfWeekDistrict[1:]
+    dfWeekDistrict = dfWeekDistrict[0:-2]
+    return(dfWeekDistrict)
 
-d = st.date_input(
-    "Pick a date",
-    datetime.date(2019, 7, 6))
+date = st.date_input(
+    "Pick a week between 2013 and 2018",
+    datetime.date(2018, 10, 5))
+
+@st.cache(persist=True)
+def Weekly_rate(year, week):
+    df = pd.read_csv(url_count)        
+    df['Date'] = pd.to_datetime(df['Date'])
+    Temp = df[(df['Date'].dt.year==year) & 
+              (df['Date'].dt.week==week)]
+    return(Temp)
+
+week = date.isocalendar()[1]
+year = date.year
+
+if (year < 2013) | (year>2018):
+    '## That date is not in range'
+else:     
+    dfWeek = Weekly_rate(year,week)
+    
+    fig = plot_baltimore(dfWeek)
+    st.plotly_chart(fig)
+    
+    displayTable = st.checkbox('Display Data Table')
+    if displayTable:
+        dfWeek
+
+police_district = st.sidebar.radio(
+    "Select a district to view weekly trend in 911 call volume", 
+    districts)
+
+dfWeekDistrict = District_counts(police_district)
+fig, ax = plt.subplots()
+ax.plot_date(dfWeekDistrict.Date, dfWeekDistrict.Count,
+             color = ((0.86,0.078,0.24)),linestyle = '-', marker = '')
+ax.set_ylim(0,)
+ax.set_xlabel('Date', fontsize=14)
+ax.set_ylabel('Medium/High Priority 911 calls', fontsize=14)
+ax.set_title("Trend for " + str(police_district) + " police district" , fontsize=16)
+st.pyplot(fig)
+
+
 
 
 
