@@ -6,6 +6,5 @@ fiona
 matplotlib
 numpy
 shapely
-urllib
 geojson
 datetime
