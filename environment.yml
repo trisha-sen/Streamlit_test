@@ -1,19 +1,19 @@
 name: Streamlit_test
 channels:
-  - conda-forge
+- conda-forge
 dependencies:
-  - conda
-  - python=3.8  # or 2.7
-  - scikit-learn
-  - numpy
-  - scipy
-  - pandas
-  - geopandas
-  - shapely
-  - plotly
-  - fiona
-  - geojson
-  - matplotlib
-  - pip
-  - pip:
-    - Streamlit
+- conda
+- python=3.8  # or 2.7
+- scikit-learn
+- numpy
+- scipy
+- pandas
+- geopandas
+- shapely
+- plotly
+- fiona
+- geojson
+- matplotlib
+- pip
+- pip:
+  - Streamlit
