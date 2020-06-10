@@ -1,1 +1,11 @@
-streamlit
+streamlit==0.61
+geopandas
+pandas
+plotly
+fiona
+matplotlib
+numpy
+shapely
+urllib
+geojson
+datetime
