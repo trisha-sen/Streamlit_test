@@ -12,7 +12,7 @@ import fiona
 import matplotlib.pyplot as plt
 import numpy as np
 from shapely.geometry import Point
-from shapely.geometry.polygon import Polygon
+from shapely.geometry import Polygon
 from urllib.request import urlopen
 import geojson
 import datetime
@@ -225,3 +225,30 @@ dfMonth = Monthly_rate(year,month)
 
 fig = plot_baltimore(dfMonth)
 st.plotly_chart(fig)
+
+#%%-----------------------------------------------------------------------------------
+url = 'https://github.com/trisha-sen/Streamlit_test/raw/master/DistrictBorders.json'
+DistrictBorders = gpd.read_file(url)
+
+HQLocations = DistrictBorders[10:].reset_index(drop=True)
+DistrictBorders = DistrictBorders[0:10].drop([2]).reset_index(drop=True)
+
+def split_name(df):
+    Name = df.Name.split()[0]
+    return Name
+
+DistrictBorders['Name']= DistrictBorders.apply(lambda x: split_name(x),axis=1)
+DistrictBorders = DistrictBorders.set_index('Name')
+
+Dist2 = DistrictBorders
+for i in range(0,9):
+    new = Polygon(Dist2.iloc[i].geometry)
+    Dist2.geometry[i] = new
+    
+Dist2['Color'] =  'white'
+Dist2.loc['Central','Color'] = '#C62828'
+Dist2.loc['Eastern','Color'] = 'green'
+    
+base = Dist2.plot(color = Dist2['Color'],edgecolor='black')
+HQLocations.plot(ax=base, marker='o', color='black', markersize=30)
+base.axis('off')
