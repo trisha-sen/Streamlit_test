@@ -13,12 +13,14 @@ import matplotlib.pyplot as plt
 import numpy as np
 from shapely.geometry import Point
 from shapely.geometry import Polygon
+# from shapely.geometry.polygon import Polygon
 from urllib.request import urlopen
 import geojson
 import datetime
 from math import radians, cos, sin, asin, sqrt
 import plotly.graph_objs as go
 
+#%%
 def distance_calculations(df1, df2):  
     lat1 = df1['latitude']
     lon1 = df1['longitude']
@@ -43,6 +45,7 @@ dHours = pd.DataFrame({'District': dist, 'hours_month': hours_month})
 dHours['hours_month'] = dHours['hours_month'].astype(float)*4.28
 dHours = dHours.set_index(['District'])
 
+#%%
 Officers = [94,98,83,85,76,95,109,78,91]
 Districts = ['Western', 'Southwestern', 'Southern', 'Northwestern', 'Central',
        'Southeastern', 'Northeastern', 'Northern', 'Eastern']
@@ -52,6 +55,7 @@ d = {'District':Districts,
      'short': Short}
 dfOfficers = pd.DataFrame(data = d)
 
+#%%
 # base.legend(loc='upper left')
 url_stations = 'https://github.com/trisha-sen/Streamlit_test/raw/master/Police_Stations.csv'
 Stations = pd.read_csv(url_stations)
@@ -89,6 +93,7 @@ def plot_baltimore(dIn):
 
 url_count = "https://github.com/trisha-sen/Streamlit_test/raw/master/MedHighWeeklyCount.csv"
 
+#%%
 # @st.cache(persist=True)
 def District_counts(month, year):
     avg_CFS_hours = 1.3*48/60
@@ -106,7 +111,7 @@ def District_counts(month, year):
 
     return(dfMonthDistrict)
 
-# st.title("My Streamlit App")
+#%%
 '''
 ## Predictions of monthly emergency workforce demand for Baltimore City.
 Select a month and year to view analysis.
@@ -132,8 +137,27 @@ else:
     month = Months[Months.months
                    ==month0].reset_index(drop=True).numer[0]
     
-''
-'Following is an analysis of predicted needs and available workforce for',month0, str(year), '. For each district, a red bar indicates shortage, a green bar indicates excess.'
+#%% Geo-spatial Distribution
+@st.cache(persist=True)
+def Monthly_rate(year,month):
+    url_monthlyPred = 'https://github.com/trisha-sen/Streamlit_test/raw/master/MonthlyPred.csv'
+    df = pd.read_csv(url_monthlyPred) #('MonthlyPred.csv') #(url_count)        
+    df['Date'] = pd.to_datetime(df['Date'])
+    Temp = df[(df['Date'].dt.year==year) & 
+              (df['Date'].dt.month==month)]
+    return(Temp)
+
+'''
+To view high resolution predictions of 911 call volumes for Baltimore,
+ hover over this map. Each zone represents a census tract.
+'''
+dfMonth = Monthly_rate(year,month)
+
+fig = plot_baltimore(dfMonth)
+st.plotly_chart(fig)
+#%%
+'Knowledge of predicted emergency call volumes has been used to estimate monthly workforce needs. Baltimore is organized into 9 districts. Following is an analysis of predicted needs and available workforce for',month0, str(year),'in each district.'
+'A red bar indicates shortage, a green bar indicates excess.'
 
 dfMonthDistrict = District_counts(month, year)
 dfMonthDistrict = dfMonthDistrict.set_index('District')
@@ -172,16 +196,8 @@ else:
         abs(int(dfPlot['Gap'].sum()))), 'emergency personnel in Baltimore for',month0, str(year)
 
 dfPlot = dfPlot.set_index('District')   
-@st.cache(persist=True)
-def Monthly_rate(year,month):
-    url_monthlyPred = 'https://github.com/trisha-sen/Streamlit_test/raw/master/MonthlyPred.csv'
-    df = pd.read_csv(url_monthlyPred) #('MonthlyPred.csv') #(url_count)        
-    df['Date'] = pd.to_datetime(df['Date'])
-    Temp = df[(df['Date'].dt.year==year) & 
-              (df['Date'].dt.month==month)]
-    return(Temp)
 
-
+#%%
 'Select a deficient district to find recommendations for 2 closest locations to transfer excess workforce from'
 Deficit = dfPlot[dfPlot['Gap']>0]
 Excess = dfPlot[dfPlot['Gap']<0]
@@ -214,42 +230,29 @@ displayTable = st.checkbox('Display Data Table')
 if displayTable:
     dExcess
 
-''
-''
-#----------Geo-spatial Distribution-------------------------------------    
-'''
-To view high resolution predictions of 911 call volumes for Baltimore,
- hover over this map.
-'''
-dfMonth = Monthly_rate(year,month)
+# #%%
+# url = 'https://github.com/trisha-sen/Streamlit_test/raw/master/DistrictBorders.json'
+# DistrictBorders = gpd.read_file(url)
 
-fig = plot_baltimore(dfMonth)
-st.plotly_chart(fig)
+# HQLocations = DistrictBorders[10:].reset_index(drop=True)
+# DistrictBorders = DistrictBorders[0:10].drop([2]).reset_index(drop=True)
 
-#%%-----------------------------------------------------------------------------------
-url = 'https://github.com/trisha-sen/Streamlit_test/raw/master/DistrictBorders.json'
-DistrictBorders = gpd.read_file(url)
+# def split_name(df):
+#     Name = df.Name.split()[0]
+#     return Name
 
-HQLocations = DistrictBorders[10:].reset_index(drop=True)
-DistrictBorders = DistrictBorders[0:10].drop([2]).reset_index(drop=True)
+# DistrictBorders['Name']= DistrictBorders.apply(lambda x: split_name(x),axis=1)
+# DistrictBorders = DistrictBorders.set_index('Name')
 
-def split_name(df):
-    Name = df.Name.split()[0]
-    return Name
-
-DistrictBorders['Name']= DistrictBorders.apply(lambda x: split_name(x),axis=1)
-DistrictBorders = DistrictBorders.set_index('Name')
-
-Dist2 = DistrictBorders
-for i in range(0,9):
-    new = Polygon(Dist2.iloc[i].geometry)
-    Dist2.geometry[i] = new
+# Dist2 = DistrictBorders
+# for i in range(0,9):
+#     new = Polygon(Dist2.iloc[i].geometry)
+#     Dist2.geometry[i] = new
     
-Dist2['Color'] =  'white'
-Dist2.loc['Central','Color'] = '#C62828'
-Dist2.loc['Eastern','Color'] = 'green'
+# Dist2['Color'] =  'white'
+# Dist2.loc['Central','Color'] = '#C62828'
+# Dist2.loc['Eastern','Color'] = 'green'
     
-base = Dist2.plot(color = Dist2['Color'],edgecolor='black')
-HQLocations.plot(ax=base, marker='o', color='black', markersize=30)
-base.axis('off')
-st.plotly_chart(base)
+# base = Dist2.plot(color = Dist2['Color'],edgecolor='black')
+# HQLocations.plot(ax=base, marker='o', color='black', markersize=30)
+# base.axis('off')
