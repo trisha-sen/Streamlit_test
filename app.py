@@ -252,3 +252,4 @@ Dist2.loc['Eastern','Color'] = 'green'
 base = Dist2.plot(color = Dist2['Color'],edgecolor='black')
 HQLocations.plot(ax=base, marker='o', color='black', markersize=30)
 base.axis('off')
+st.plotly_chart(base)
