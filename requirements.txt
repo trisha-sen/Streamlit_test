@@ -8,3 +8,4 @@ numpy
 shapely
 geojson
 datetime
+descartes
