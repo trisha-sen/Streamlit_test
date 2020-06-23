@@ -114,7 +114,9 @@ def District_counts(month, year):
 #%%
 '''
 ## Predictions of monthly emergency workforce demand for Baltimore City.
-Select a month and year to view analysis.
+Details: https://github.com/trisha-sen/911DataAnalysis
+
+Select a month and year to view analysis. 
 '''
 year = st.selectbox('Year',[2020,2021])
 if year == 2020:
@@ -149,7 +151,7 @@ def Monthly_rate(year,month):
 
 '''
 To view high resolution predictions of 911 call volumes for Baltimore,
- hover over this map. Each zone represents a census tract.
+hover over this map. Each zone represents a census tract. 
 '''
 dfMonth = Monthly_rate(year,month)
 
