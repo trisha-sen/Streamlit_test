@@ -1,4 +1,4 @@
-streamlit==0.61
+streamlit==1.37.0
 geopandas
 pandas
 plotly
